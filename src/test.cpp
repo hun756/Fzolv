@@ -13,6 +13,15 @@ protected:
     Fzolv::Vector2i v6{11, 12};
 };
 
+class Vector2ClampTest : public ::testing::Test {
+protected:
+    // Define some Vector2 objects for testing
+    Fzolv::Vector2f v1{3.5, 4.2};
+    Fzolv::Vector2f v2{1.0, 2.0};
+    Fzolv::Vector2f v3{5.0, 6.0};
+    Fzolv::Vector2f v4{3.5, 4.2}; // Expected result of clamping v1 between v2 and v3
+};
+
 TEST_F(Vector2Test, DefaultConstructor)
 {
     Fzolv::Vector2f v;
@@ -145,24 +154,6 @@ TEST_F(Vector2Test, DistanceToMethod)
     EXPECT_FLOAT_EQ(dist, (v1 - v2).length());
 }
 
-TEST_F(Vector2Test, ClampToMaxMethod)
-{
-    auto &ref = v3.clampToMax(v2);
-
-    EXPECT_EQ(&ref, &v3);
-    EXPECT_LE(v3.x, v2.x);
-    EXPECT_LE(v3.y, v2.y);
-}
-
-TEST_F(Vector2Test, ClampToMinMethod)
-{
-    auto &ref = v3.clampToMin(v1);
-
-    EXPECT_EQ(&ref, &v3);
-    EXPECT_GE(v3.x, v1.x);
-    EXPECT_GE(v3.y, v1.y);
-}
-
 TEST_F(Vector2Test, FloorMethod)
 {
     auto &ref = v1.floor();
@@ -277,4 +268,10 @@ TEST_F(Vector2Test, PrivateMembers)
 
     EXPECT_EQ(Accessor::getX(v6), v6.x);
     EXPECT_EQ(Accessor::getY(v6), v6.y);
+}
+
+TEST_F(Vector2ClampTest, Clamp) {
+    Fzolv::Vector2f result = Fzolv::Vector2f::clamp(v1, v2, v3);
+    EXPECT_EQ(result.x, v4.x);
+    EXPECT_EQ(result.y, v4.y);
 }

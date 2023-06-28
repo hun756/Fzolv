@@ -1,6 +1,7 @@
 #ifndef FZOLV_VECTOR_hy78kj
 #define FZOLV_VECTOR_hy78kj
 
+#include <algorithm>
 #include <cmath>
 #include <type_traits>
 
@@ -241,53 +242,29 @@ namespace Fzolv
         }
 
         /**
-         * @brief Clamp this vector to the maximum components of another vector in-place and return a reference to itself
-         *
-         * Clamping a vector means limiting its components to a certain range. For example, clamping a vector (3, 5) to the maximum
-         * components of (4, 4) results in (3, 4). Clamping can be useful for bounding a vector within a certain region or preventing
-         * it from exceeding a certain limit.
-         *
-         * Clamping is not the same as normalizing. Normalizing a vector means scaling it to have a unit length, while preserving its
-         * direction. Clamping a vector does not change its direction, but may change its length.
-         *
-         * Clamping is also not the same as projecting. Projecting a vector means finding the closest point on a line or a plane that
-         * passes through another vector. Projecting a vector does not change its length, but may change its direction.
-         *
-         * @param other The other vector to clamp to its maximum components
-         * @return Vector2& A reference to this clamped vector
+         * @brief Clamps a vector to a given range.
+         * 
+         * This function template takes a vector of type U and two vectors of the same type representing the minimum and maximum values, 
+         * and returns a new vector of type U that is clamped to the range [min, max]. The clamping is done component-wise, using a lambda 
+         * expression that clamps a scalar value to a scalar range. The function template uses std::enable_if and std::is_convertible to enable 
+         * the function only if U is convertible to Vector2<T>.
+         * 
+         * @tparam U The type of the vector to be clamped. Must be convertible to Vector2<T>.
+         * @param value The vector to be clamped.
+         * @param min The vector representing the minimum values.
+         * @param max The vector representing the maximum values.
+         * @return U A new vector of type U that is clamped to the range [min, max].
          */
-        Vector2 &clampToMax(const Vector2 &other)
+        template <typename U> static typename std::enable_if<
+            std::is_convertible<U, Vector2<T>>::value, U
+        >::type clamp(const U &value, const U &min, const U &max)
         {
-            if (x > other.x)
-                x = other.x;
-            if (y > other.y)
-                y = other.y;
-            return *this;
-        }
+            constexpr auto clamp = [](auto x, auto low, auto high)
+            {
+                return x > high ? high : (x < low ? low : x);
+            };
 
-        /**
-         * @brief Clamp this vector to the minimum components of another vector in-place and return a reference to itself
-         *
-         * Clamping a vector means limiting its components to a certain range. For example, clamping a vector (3, 5) to the minimum
-         * components of (4, 4) results in (4, 5). Clamping can be useful for bounding a vector within a certain region or preventing
-         * it from exceeding a certain limit.
-         *
-         * Clamping is not the same as normalizing. Normalizing a vector means scaling it to have a unit length, while preserving its
-         * direction. Clamping a vector does not change its direction, but may change its length.
-         *
-         * Clamping is also not the same as projecting. Projecting a vector means finding the closest point on a line or a plane that
-         * passes through another vector. Projecting a vector does not change its length, but may change its direction.
-         *
-         * @param other The other vector to clamp to its minimum components
-         * @return Vector2& A reference to this clamped vector
-         */
-        Vector2 &clampToMin(const Vector2 &other)
-        {
-            if (x < other.x)
-                x = other.x;
-            if (y < other.y)
-                y = other.y;
-            return *this;
+            return U{clamp(value.x, min.x, max.x), clamp(value.y, min.y, max.y)};
         }
 
         /**
