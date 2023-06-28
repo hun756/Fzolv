@@ -3,21 +3,10 @@
 
 #include <algorithm>
 #include <cmath>
-#include <type_traits>
+#include <util.hpp>
 
 namespace Fzolv
 {
-    /**
-     * @brief A template struct that checks if a type is numeric.
-     * @tparam T The type to check.
-     * @details This struct inherits from std::integral_constant and sets its value to true if T is either an integral
-     * or a floating point type, and false otherwise. It uses std::is_integral and std::is_floating_point to perform the check.
-     */
-    template <typename T>
-    struct is_numeric : std::integral_constant<bool, std::is_integral<T>::value || std::is_floating_point<T>::value>
-    {
-    };
-
     /**
      * @brief A generic class for 2D vectors with numeric types
      *
@@ -61,7 +50,7 @@ namespace Fzolv
          * @param other The other vector to copy from
          * @return Vector2& A reference to this vector
          */
-        Vector2 &operator=(const Vector2 &) = default;
+        auto operator=(const Vector2 &) -> Vector2 & = default;
 
         /**
          * @brief Move assignment operator, moves the components from another vector
@@ -69,7 +58,7 @@ namespace Fzolv
          * @param other The other vector to move from
          * @return Vector2& A reference to this vector
          */
-        Vector2 &operator=(Vector2 &&other) noexcept
+        auto operator=(Vector2 &&other) noexcept -> Vector2 &
         {
             if (this != &other)
             {
@@ -90,7 +79,7 @@ namespace Fzolv
          * @param x The x component of the vector
          * @param y The y component of the vector
          */
-        constexpr Vector2(T x, T y) : x{x}, y{y} {}
+        constexpr Vector2(T xVal, T yVal) : x{xVal}, y{yVal} {}
 
         ///< Static factory methods for common vectors
 
@@ -99,28 +88,28 @@ namespace Fzolv
          *
          * @return constexpr Vector2 The zero vector
          */
-        static constexpr Vector2 Zero() { return {.0F, .0F}; }
+        static constexpr auto Zero() -> Vector2 { return {.0F, .0F}; }
 
         /**
          * @brief Static factory method for the one vector
          *
          * @return constexpr Vector2 The one vector
          */
-        static constexpr Vector2 One() { return {1.0F, 1.0F}; }
+        static constexpr auto One() -> Vector2 { return {1.0F, 1.0F}; }
 
         /**
          * @brief Static factory method for the unit x vector
          *
          * @return constexpr Vector2 The unit x vector
          */
-        static constexpr Vector2 UnitX() { return {1.0F, .0F}; }
+        static constexpr auto UnitX() -> Vector2 { return {1.0F, .0F}; }
 
         /**
          * @brief Static factory method for the unit y vector
          *
          * @return constexpr Vector2 The unit y vector
          */
-        static constexpr Vector2 UnitY() { return {.0F, 1.0F}; }
+        static constexpr auto UnitY() -> Vector2 { return {.0F, 1.0F}; }
 
         /**
          * @brief Set the x and y components of the vector
@@ -128,10 +117,10 @@ namespace Fzolv
          * @param x The new x component of the vector
          * @param y The new y component of the vector
          */
-        constexpr void set(T x, T y)
+        constexpr void set(T xVal, T yVal)
         {
-            this->x = x;
-            this->y = y;
+            x = xVal;
+            y = yVal;
         }
 
         /**
@@ -139,7 +128,7 @@ namespace Fzolv
          *
          * @return constexpr T The squared length of the vector
          */
-        [[nodiscard]] constexpr T lengthSquared() const
+        [[nodiscard]] constexpr auto lengthSquared() const -> T
         {
             return (x * x) + (y * y);
         }
@@ -149,7 +138,7 @@ namespace Fzolv
          *
          * @return double The length of the vector
          */
-        [[nodiscard]] double length() const
+        [[nodiscard]] auto length() const -> double
         {
             return std::sqrt(lengthSquared());
         }
@@ -159,7 +148,7 @@ namespace Fzolv
          *
          * @return Vector2& A reference to this normalized vector
          */
-        Vector2 &normalize()
+        auto normalize() -> Vector2 &
         {
             auto len = length();
             if (len != 0)
@@ -188,7 +177,7 @@ namespace Fzolv
          * @param other The other vector to dot with
          * @return constexpr T The dot product of the two vectors
          */
-        [[nodiscard]] constexpr T dot(const Vector2 &other) const
+        [[nodiscard]] constexpr auto dot(const Vector2 &other) const -> T
         {
             return x * other.x + y * other.y;
         }
@@ -212,7 +201,7 @@ namespace Fzolv
          * @param other The other vector to cross with
          * @return constexpr T The cross product of the two vectors
          */
-        [[nodiscard]] constexpr T cross(const Vector2 &other) const
+        [[nodiscard]] constexpr auto cross(const Vector2 &other) const -> T
         {
             return x * other.y - y * other.x;
         }
@@ -223,11 +212,11 @@ namespace Fzolv
          * @param other The other vector to measure the distance to
          * @return constexpr T The squared distance between the two vectors
          */
-        [[nodiscard]] constexpr T distanceToSquared(const Vector2 &other) const
+        [[nodiscard]] constexpr auto distanceToSquared(const Vector2 &other) const -> T
         {
-            auto dx = x - other.x;
-            auto dy = y - other.y;
-            return (dx * dx) + (dy * dy);
+            auto dxVal = x - other.x;
+            auto dyVal = y - other.y;
+            return (dxVal * dxVal) + (dyVal * dyVal);
         }
 
         /**
@@ -236,7 +225,7 @@ namespace Fzolv
          * @param other The other vector to measure the distance to
          * @return double The distance between the two vectors
          */
-        [[nodiscard]] double distanceTo(const Vector2 &other) const
+        [[nodiscard]] auto distanceTo(const Vector2 &other) const -> double
         {
             return std::sqrt(distanceToSquared(other));
         }
@@ -255,9 +244,8 @@ namespace Fzolv
          * @param max The vector representing the maximum values.
          * @return U A new vector of type U that is clamped to the range [min, max].
          */
-        template <typename U> static typename std::enable_if<
-            std::is_convertible<U, Vector2<T>>::value, U
-        >::type clamp(const U &value, const U &min, const U &max)
+        template <typename U> static constexpr auto clamp(const U &value, const U &min, const U &max) 
+            -> typename std::enable_if<std::is_convertible<U, Vector2<T>>::value, U>::type
         {
             constexpr auto clamp = [](auto x, auto low, auto high)
             {
@@ -283,7 +271,7 @@ namespace Fzolv
          *
          * @return Vector2& A reference to this floored vector
          */
-        Vector2 &floor()
+        auto floor() -> Vector2 &
         {
             x = std::floor(x);
             y = std::floor(y);
@@ -306,7 +294,7 @@ namespace Fzolv
          *
          * @return Vector2& A reference to this ceiled vector
          */
-        Vector2 &ceil()
+        auto ceil() -> Vector2 &
         {
             x = std::ceil(x);
             y = std::ceil(y);
@@ -330,7 +318,7 @@ namespace Fzolv
          *
          * @return Vector2& A reference to this rounded vector
          */
-        Vector2 &round()
+        auto round() -> Vector2 &
         {
             x = std::round(x);
             y = std::round(y);
@@ -356,29 +344,29 @@ namespace Fzolv
          * @param rhs The right-hand side operand of the operator
          * @return friend constexpr Vector2 The result of the operation
          */
-        static constexpr Vector2 Lerp(const Vector2 &start, const Vector2 &end, float amount)
+        static constexpr auto Lerp(const Vector2 &start, const Vector2 &end, float amount) -> Vector2
         {
             float x = start.x + ((end.x - start.x) * amount);
             float y = start.y + ((end.y - start.y) * amount);
             return {x, y};
         }
 
-        friend constexpr Vector2 operator+(const Vector2 &lhs, const Vector2 &rhs)
+        friend constexpr auto operator+(const Vector2 &lhs, const Vector2 &rhs) -> Vector2
         {
             return {lhs.x + rhs.x, lhs.y + rhs.y};
         }
 
-        friend constexpr Vector2 operator-(const Vector2 &lhs, const Vector2 &rhs)
+        friend constexpr auto operator-(const Vector2 &lhs, const Vector2 &rhs) -> Vector2
         {
             return {lhs.x - rhs.x, lhs.y - rhs.y};
         }
 
-        friend constexpr Vector2 operator*(const Vector2 &lhs, T scalar)
+        friend constexpr auto operator*(const Vector2 &lhs, T scalar) -> Vector2
         {
             return {lhs.x * scalar, lhs.y * scalar};
         }
 
-        friend constexpr Vector2 operator/(const Vector2 &lhs, T scalar)
+        friend constexpr auto operator/(const Vector2 &lhs, T scalar) -> Vector2
         {
             return {lhs.x / scalar, lhs.y / scalar};
         }
@@ -396,28 +384,28 @@ namespace Fzolv
          * the result to the first vector results in (a1 + a2, b1 + b2) stored in (a1, b1). Vector addition and subtraction are commutative
          * and associative, meaning that (a += b) = (b += a) and (a += (b += c)) = ((a += b) += c).
          */
-        Vector2 &operator+=(const Vector2 &other)
+        auto operator+=(const Vector2 &other) -> Vector2 &
         {
             x += other.x;
             y += other.y;
             return *this;
         }
 
-        Vector2 &operator-=(const Vector2 &other)
+        auto operator-=(const Vector2 &other) -> Vector2 &
         {
             x -= other.x;
             y -= other.y;
             return *this;
         }
 
-        Vector2 &operator*=(T scalar)
+        auto operator*=(T scalar) -> Vector2 &
         {
             x *= scalar;
             y *= scalar;
             return *this;
         }
 
-        Vector2 &operator/=(T scalar)
+        auto operator/=(T scalar) -> Vector2 &
         {
             x /= scalar;
             y /= scalar;
@@ -428,7 +416,7 @@ namespace Fzolv
          * @brief Overload comparison operators for vector equality and inequality
          *
          * Comparison operators are symbols that compare two operands and return a boolean value. For example, == is a comparison operator
-         *  that checks if two operands are equal and returns true or false. Comparison operators can be overloaded for user-defined types
+         * that checks if two operands are equal and returns true or false. Comparison operators can be overloaded for user-defined types
          * such as vectors to define how they behave with these operators.
          *
          * Vector equality and inequality are element-wise operations that check if the components of two vectors are equal or not.
@@ -439,17 +427,17 @@ namespace Fzolv
          * @param rhs The right-hand side operand of the operator
          * @return friend constexpr bool The result of the comparison
          */
-        friend constexpr bool operator==(const Vector2 &lhs, const Vector2 &rhs)
+        friend constexpr auto operator==(const Vector2 &lhs, const Vector2 &rhs) -> bool
         {
             return lhs.x == rhs.x && lhs.y == rhs.y;
         }
 
-        friend constexpr bool operator!=(const Vector2 &lhs, const Vector2 &rhs)
+        friend constexpr auto operator!=(const Vector2 &lhs, const Vector2 &rhs) -> bool
         {
             return !(lhs == rhs);
         }
+    
 
-    public:
         /**
          * @brief The x component of the vector
          */
@@ -467,9 +455,9 @@ namespace Fzolv
     public:
         Vector3() = default;
         Vector3(const Vector3 &) = default;
-        Vector3(const Vector3 &&) = default;
-        Vector3 &operator=(const Vector3 &) = default;
-        Vector3 &operator=(const Vector3 &&) = default;
+        Vector3(const Vector3 &&)  noexcept = default;
+        auto operator=(const Vector3 &) -> Vector3 & = default;
+        auto operator=(Vector3 &&)  noexcept -> Vector3 & = default;
 
     private:
         T x, y, z;
